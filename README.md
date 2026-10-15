@@ -33,7 +33,7 @@ This project was developed as a college-level DSA mini project using the C progr
 | Remove Song | Searches for a song ID and removes the corresponding playlist node. |
 | Add to Play Queue | Adds a song to the rear of the playback queue. |
 | Play Next Song | Retrieves the next queued song and records it in recent history. |
-| Recently Played | Displays played songs from newest to oldest. |
+| Recently Played | Displays recent songs from newest to oldest. |
 | Search Song | Searches for a song by ID using a BST. |
 | Recommend a Song | Searches for the next sequential song ID using the BST. |
 | Exit | Terminates the program. |
@@ -109,7 +109,7 @@ The recommendation mechanism is intentionally simple. It is based on sequential 
 - **Core Concepts:** Structures, pointers, functions, dynamic memory allocation, and recursion where applicable
 - **Data Structures:** Linked List, Queue, Stack, Binary Search Tree
 - **Development Environment:** Code::Blocks or another compatible C compiler
-- **Version Control and Hosting:** GitHub
+- **Version Control:** Git and GitHub
 
 ## 📊 Time Complexity Analysis
 
@@ -156,10 +156,10 @@ The overall auxiliary storage requirement is O(n), excluding fixed-size structur
 
 ### Using GCC
 
-If the source file is named `main.c`, open a terminal in the directory containing the file and execute:
+If the source file is named `Music playlist system.c`, open a terminal in the directory containing the file and execute:
 
 ```bash
-gcc main.c -o music_playlist
+gcc "Music playlist system.c" -o music_playlist
 ```
 
 Run the program:
@@ -174,35 +174,27 @@ music_playlist.exe
 ./music_playlist
 ```
 
-Replace `main.c` with the actual C source filename if it differs.
+Replace the source filename with the actual filename if it differs.
 
 ## 📂 Repository Structure
 
 ```text
 music-playlist-system/
 │
-├── main.c
-├── DSA FINAL PPT.pptx
+├── Music playlist system.c
+├── Music_Playlist_Presentation.pptx
 └── README.md
 ```
 
-The filenames shown are examples for the source file and README. Keep your actual source filename in the repository. The presentation filename above matches the uploaded PowerPoint.
+*The presentation filename shown is an example. Replace it with your actual filename if it differs.*
 
 ## 📑 Project Presentation
 
-The PowerPoint presentation covers:
+The PowerPoint presentation included in this repository explains the project, its objectives, implementation, and data structures.
 
-- Problem statement and objectives
-- System overview and data structure mapping
-- Sample songs and menu operations
-- Linked list, queue, stack, and BST concepts
-- Algorithms and pseudocode
-- C implementation and program flow
-- Recommendation mechanism
-- Time and space complexity analysis
-- Execution walkthrough and conclusion
+**Presentation:** `Music_Playlist_Presentation.pptx`
 
-**Presentation:** [`DSA FINAL PPT.pptx`](./DSA%20FINAL%20PPT.pptx)
+Download the presentation from the repository to view the slides.
 
 ## ⚠️ Current Scope and Limitations
 
@@ -250,6 +242,6 @@ This project is intended for educational and academic purposes. A suitable open-
 
 ---
 
-**Thank you for visiting our project! 🎶**
+⭐ If you find this project useful for learning Data Structures and Algorithms, consider giving the repository a star.
 
-If you find this project useful for learning Data Structures and Algorithms, consider starring the repository.
+**Thank you for visiting the Music Playlist System repository!** 🎶
