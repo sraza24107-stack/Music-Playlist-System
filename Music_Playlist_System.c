@@ -1,436 +1,452 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
-#define MAX 5
+#define MAX 20
 
-/* =========================
-   QUEUE FOR LEVEL 1
-   ========================= */
+/* ================= SONG STRUCTURE ================= */
 
-char queue[MAX][20];
-int front = 0;
-int rear = -1;
-
-void enqueue(char word[])
+struct Song
 {
-    if (rear == MAX - 1)
-    {
-        return;
-    }
-
-    rear++;
-    strcpy(queue[rear], word);
-}
-
-char* dequeue()
-{
-    if (front > rear)
-    {
-        return NULL;
-    }
-
-    return queue[front++];
-}
-
-/* =========================
-   STACK FOR PREVIOUS GUESSES
-   ========================= */
-
-char stack[MAX][20];
-int top = -1;
-
-void push(char word[])
-{
-    if (top == MAX - 1)
-    {
-        return;
-    }
-
-    top++;
-    strcpy(stack[top], word);
-}
-
-void displayStack()
-{
-    int i;
-
-    printf("\nPrevious Answers:\n");
-
-    if (top == -1)
-    {
-        printf("No answers yet.\n");
-        return;
-    }
-
-    for (i = top; i >= 0; i--)
-    {
-        printf("%s\n", stack[i]);
-    }
-}
-
-/* =========================
-   LINKED LIST FOR WORD CHAIN
-   ========================= */
-
-struct node
-{
-    char word[20];
-    struct node *next;
+    int id;
+    char name[50];
+    char artist[50];
+    char genre[30];
 };
 
-struct node *head = NULL;
+/* ================= LINKED LIST ================= */
 
-void addWord(char word[])
+struct Node
 {
-    struct node *newnode;
-    struct node *temp;
+    struct Song song;
+    struct Node *next;
+};
 
-    newnode = (struct node*)malloc(sizeof(struct node));
+struct Node *playlist = NULL;
 
-    strcpy(newnode->word, word);
-    newnode->next = NULL;
+/* Add song to playlist */
+void addToPlaylist(struct Song s)
+{
+    struct Node *newNode;
+    struct Node *temp;
 
-    if (head == NULL)
+    newNode = (struct Node *)malloc(sizeof(struct Node));
+
+    newNode->song = s;
+    newNode->next = NULL;
+
+    if (playlist == NULL)
     {
-        head = newnode;
+        playlist = newNode;
     }
     else
     {
-        temp = head;
+        temp = playlist;
 
         while (temp->next != NULL)
         {
             temp = temp->next;
         }
 
-        temp->next = newnode;
+        temp->next = newNode;
     }
+
+    printf("Song added to playlist!\n");
 }
 
-void displayChain()
+/* Display playlist */
+void displayPlaylist()
 {
-    struct node *temp = head;
+    struct Node *temp = playlist;
 
-    printf("\nWord Chain:\n");
+    if (playlist == NULL)
+    {
+        printf("Playlist is empty.\n");
+        return;
+    }
+
+    printf("\n----- MY PLAYLIST -----\n");
 
     while (temp != NULL)
     {
-        printf("%s", temp->word);
-
-        if (temp->next != NULL)
-        {
-            printf(" -> ");
-        }
+        printf("ID: %d | %s | %s | %s\n",
+               temp->song.id,
+               temp->song.name,
+               temp->song.artist,
+               temp->song.genre);
 
         temp = temp->next;
     }
-
-    printf("\n");
 }
 
-/* =========================
-   BINARY SEARCH TREE
-   ========================= */
-
-struct tree
+/* Delete song from playlist */
+void deleteFromPlaylist(int id)
 {
-    char word[20];
-    struct tree *left;
-    struct tree *right;
+    struct Node *temp = playlist;
+    struct Node *prev = NULL;
+
+    while (temp != NULL)
+    {
+        if (temp->song.id == id)
+        {
+            if (prev == NULL)
+                playlist = temp->next;
+            else
+                prev->next = temp->next;
+
+            free(temp);
+
+            printf("Song removed from playlist.\n");
+            return;
+        }
+
+        prev = temp;
+        temp = temp->next;
+    }
+
+    printf("Song not found.\n");
+}
+
+/* ================= STACK ================= */
+
+/* Stack for recently played songs */
+
+struct Song recentStack[MAX];
+int top = -1;
+
+void pushRecent(struct Song s)
+{
+    if (top == MAX - 1)
+    {
+        printf("Recent history is full.\n");
+        return;
+    }
+
+    top++;
+    recentStack[top] = s;
+}
+
+void showRecent()
+{
+    int i;
+
+    if (top == -1)
+    {
+        printf("No recently played songs.\n");
+        return;
+    }
+
+    printf("\n----- RECENTLY PLAYED -----\n");
+
+    for (i = top; i >= 0; i--)
+    {
+        printf("%s - %s\n",
+               recentStack[i].name,
+               recentStack[i].artist);
+    }
+}
+
+/* ================= QUEUE ================= */
+
+/* Queue for songs waiting to be played */
+
+struct Song playQueue[MAX];
+
+int front = -1;
+int rear = -1;
+
+void enqueue(struct Song s)
+{
+    if (rear == MAX - 1)
+    {
+        printf("Play queue is full.\n");
+        return;
+    }
+
+    if (front == -1)
+        front = 0;
+
+    rear++;
+    playQueue[rear] = s;
+
+    printf("Song added to play queue.\n");
+}
+
+void playNext()
+{
+    struct Song s;
+
+    if (front == -1 || front > rear)
+    {
+        printf("Play queue is empty.\n");
+        return;
+    }
+
+    s = playQueue[front];
+
+    printf("\nNow Playing: %s - %s\n",
+           s.name,
+           s.artist);
+
+    pushRecent(s);
+
+    front++;
+
+    if (front > rear)
+    {
+        front = -1;
+        rear = -1;
+    }
+}
+
+/* ================= BINARY SEARCH TREE ================= */
+
+struct TreeNode
+{
+    struct Song song;
+    struct TreeNode *left;
+    struct TreeNode *right;
 };
 
-struct tree* createNode(char word[])
+struct TreeNode *root = NULL;
+
+/* Create BST node */
+struct TreeNode *createTreeNode(struct Song s)
 {
-    struct tree *newnode;
+    struct TreeNode *newNode;
 
-    newnode = (struct tree*)malloc(sizeof(struct tree));
+    newNode = (struct TreeNode *)malloc(sizeof(struct TreeNode));
 
-    strcpy(newnode->word, word);
+    newNode->song = s;
+    newNode->left = NULL;
+    newNode->right = NULL;
 
-    newnode->left = NULL;
-    newnode->right = NULL;
-
-    return newnode;
+    return newNode;
 }
 
-struct tree* insert(struct tree *root, char word[])
+/* Insert song into BST */
+struct TreeNode *insertBST(struct TreeNode *root, struct Song s)
 {
     if (root == NULL)
     {
-        return createNode(word);
+        return createTreeNode(s);
     }
 
-    if (strcmp(word, root->word) < 0)
+    if (s.id < root->song.id)
     {
-        root->left = insert(root->left, word);
+        root->left = insertBST(root->left, s);
     }
-    else if (strcmp(word, root->word) > 0)
+    else
     {
-        root->right = insert(root->right, word);
+        root->right = insertBST(root->right, s);
     }
 
     return root;
 }
 
-int search(struct tree *root, char word[])
+/* Search song by ID */
+struct TreeNode *searchBST(struct TreeNode *root, int id)
 {
-    if (root == NULL)
-    {
-        return 0;
-    }
+    if (root == NULL || root->song.id == id)
+        return root;
 
-    if (strcmp(word, root->word) == 0)
-    {
-        return 1;
-    }
-
-    if (strcmp(word, root->word) < 0)
-    {
-        return search(root->left, word);
-    }
-
-    return search(root->right, word);
+    if (id < root->song.id)
+        return searchBST(root->left, id);
+    else
+        return searchBST(root->right, id);
 }
 
-/* =========================
-   CONVERT WORD TO UPPERCASE
-   ========================= */
+/* ================= RECOMMENDATION ================= */
 
-void upper(char word[])
+void recommend(struct Song current)
 {
-    int i;
+    struct TreeNode *result;
 
-    for (i = 0; word[i] != '\0'; i++)
+    printf("\n----- RECOMMENDATION -----\n");
+
+    printf("Because you are listening to: %s\n",
+           current.name);
+
+    printf("Genre: %s\n", current.genre);
+
+    /*
+       Simple recommendation:
+       Search the BST for another song.
+       In this simple project we demonstrate
+       BST searching by song ID.
+    */
+
+    result = searchBST(root, current.id + 1);
+
+    if (result != NULL)
     {
-        word[i] = toupper(word[i]);
+        printf("Recommended Song: %s\n",
+               result->song.name);
+
+        printf("Artist: %s\n",
+               result->song.artist);
+
+        printf("Genre: %s\n",
+               result->song.genre);
+    }
+    else
+    {
+        printf("No recommendation available.\n");
     }
 }
 
-/* =========================
-   MAIN
-   ========================= */
+/* ================= MAIN ================= */
 
 int main()
 {
-    char player[30];
-    char answer[20];
-    char *correctWord;
+    int choice;
+    int id;
 
-    int score = 0;
-    int i;
-
-    struct tree *root = NULL;
-
-    /* Dictionary */
-    char dictionary[][20] =
+    struct Song songs[5] =
     {
-        "APPLE",
-        "BALL",
-        "CAT",
-        "DOG",
-        "ELEPHANT",
-        "HOUSE",
-        "RAT",
-        "TABLE",
-        "TIGER",
-        "TRAIN"
+        {1, "Perfect", "Ed Sheeran", "Pop"},
+        {2, "Believer", "Imagine Dragons", "Rock"},
+        {3, "Blinding Lights", "The Weeknd", "Pop"},
+        {4, "Shape of You", "Ed Sheeran", "Pop"},
+        {5, "Faded", "Alan Walker", "EDM"}
     };
 
-    /* =========================
-       CREATE BST
-       ========================= */
-
-    for (i = 0; i < 10; i++)
+    /* Insert songs into BST */
+    for (int i = 0; i < 5; i++)
     {
-        root = insert(root, dictionary[i]);
+        root = insertBST(root, songs[i]);
     }
 
-    /* =========================
-       CREATE LEVEL 1 QUEUE
-       ========================= */
+    /* Add some songs to playlist */
+    addToPlaylist(songs[0]);
+    addToPlaylist(songs[1]);
+    addToPlaylist(songs[2]);
 
-    enqueue("APPLE");
-    enqueue("TIGER");
-    enqueue("HOUSE");
-
-    printf("====================================\n");
-    printf("          WORD WARS\n");
-    printf("====================================\n");
-
-    printf("Enter your name: ");
-    scanf("%s", player);
-
-    printf("\nWelcome %s!\n", player);
-
-    /* =========================
-       LEVEL 1
-       ========================= */
-
-    printf("\n====================================\n");
-    printf("             LEVEL 1\n");
-    printf("           WORD SCRAMBLE\n");
-    printf("====================================\n");
-
-    /* First word */
-
-    correctWord = dequeue();
-
-    printf("\nScrambled Word: E P P L A\n");
-    printf("Your answer: ");
-    scanf("%s", answer);
-
-    upper(answer);
-
-    push(answer);
-
-    if (strcmp(answer, correctWord) == 0)
+    while (1)
     {
-        printf("Correct! +10 points\n");
-        score += 10;
+        printf("\n==============================\n");
+        printf("      MUSIC PLAYLIST SYSTEM\n");
+        printf("==============================\n");
+
+        printf("1. Display Playlist\n");
+        printf("2. Add Song to Playlist\n");
+        printf("3. Remove Song from Playlist\n");
+        printf("4. Add Song to Play Queue\n");
+        printf("5. Play Next Song\n");
+        printf("6. Show Recently Played\n");
+        printf("7. Search Song\n");
+        printf("8. Get Recommendation\n");
+        printf("9. Exit\n");
+
+        printf("\nEnter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice)
+        {
+            case 1:
+                displayPlaylist();
+                break;
+
+            case 2:
+                printf("\nAvailable Songs:\n");
+
+                for (int i = 0; i < 5; i++)
+                {
+                    printf("%d. %s - %s - %s\n",
+                           songs[i].id,
+                           songs[i].name,
+                           songs[i].artist,
+                           songs[i].genre);
+                }
+
+                printf("Enter Song ID: ");
+                scanf("%d", &id);
+
+                if (id >= 1 && id <= 5)
+                    addToPlaylist(songs[id - 1]);
+                else
+                    printf("Invalid Song ID.\n");
+
+                break;
+
+            case 3:
+                printf("Enter Song ID to remove: ");
+                scanf("%d", &id);
+
+                deleteFromPlaylist(id);
+                break;
+
+            case 4:
+                printf("\nAvailable Songs:\n");
+
+                for (int i = 0; i < 5; i++)
+                {
+                    printf("%d. %s\n",
+                           songs[i].id,
+                           songs[i].name);
+                }
+
+                printf("Enter Song ID: ");
+                scanf("%d", &id);
+
+                if (id >= 1 && id <= 5)
+                    enqueue(songs[id - 1]);
+                else
+                    printf("Invalid Song ID.\n");
+
+                break;
+
+            case 5:
+                playNext();
+                break;
+
+            case 6:
+                showRecent();
+                break;
+
+            case 7:
+                printf("Enter Song ID to search: ");
+                scanf("%d", &id);
+
+                {
+                    struct TreeNode *result;
+
+                    result = searchBST(root, id);
+
+                    if (result != NULL)
+                    {
+                        printf("\nSong Found!\n");
+                        printf("Name: %s\n", result->song.name);
+                        printf("Artist: %s\n", result->song.artist);
+                        printf("Genre: %s\n", result->song.genre);
+                    }
+                    else
+                    {
+                        printf("Song not found.\n");
+                    }
+                }
+
+                break;
+
+            case 8:
+                printf("Enter Song ID you are listening to: ");
+                scanf("%d", &id);
+
+                if (id >= 1 && id <= 5)
+                    recommend(songs[id - 1]);
+                else
+                    printf("Invalid Song ID.\n");
+
+                break;
+
+            case 9:
+                printf("Thank you!\n");
+                exit(0);
+
+            default:
+                printf("Invalid choice.\n");
+        }
     }
-    else
-    {
-        printf("Wrong answer!\n");
-        printf("Correct answer: %s\n", correctWord);
-    }
-
-    /* Second word */
-
-    correctWord = dequeue();
-
-    printf("\nScrambled Word: R G I T E\n");
-    printf("Your answer: ");
-    scanf("%s", answer);
-
-    upper(answer);
-
-    push(answer);
-
-    if (strcmp(answer, correctWord) == 0)
-    {
-        printf("Correct! +10 points\n");
-        score += 10;
-    }
-    else
-    {
-        printf("Wrong answer!\n");
-        printf("Correct answer: %s\n", correctWord);
-    }
-
-    /* Third word */
-
-    correctWord = dequeue();
-
-    printf("\nScrambled Word: S O H U E\n");
-    printf("Your answer: ");
-    scanf("%s", answer);
-
-    upper(answer);
-
-    push(answer);
-
-    if (strcmp(answer, correctWord) == 0)
-    {
-        printf("Correct! +10 points\n");
-        score += 10;
-    }
-    else
-    {
-        printf("Wrong answer!\n");
-        printf("Correct answer: %s\n", correctWord);
-    }
-
-    printf("\nYour Level 1 Score = %d\n", score);
-
-    displayStack();
-
-    /* =========================
-       CHECK FOR LEVEL 2
-       ========================= */
-
-    if (score < 20)
-    {
-        printf("\nYou need at least 20 points to enter Level 2.\n");
-        printf("GAME OVER!\n");
-        return 0;
-    }
-
-    printf("\n====================================\n");
-    printf("          LEVEL 2 UNLOCKED!\n");
-    printf("====================================\n");
-
-    printf("\nWORD CHAIN CHALLENGE\n");
-
-    /*
-       Starting word
-    */
-
-    strcpy(answer, "CAT");
-
-    addWord(answer);
-
-    printf("\nStarting word: CAT\n");
-
-    /* Player enters next word */
-
-    printf("\nEnter a word starting with T: ");
-    scanf("%s", answer);
-
-    upper(answer);
-
-    if (answer[0] != 'T')
-    {
-        printf("Wrong starting letter!\n");
-        printf("GAME OVER!\n");
-        return 0;
-    }
-
-    if (!search(root, answer))
-    {
-        printf("Word not found in dictionary!\n");
-        printf("GAME OVER!\n");
-        return 0;
-    }
-
-    addWord(answer);
-    score += 10;
-
-    /* Next word */
-
-    printf("\nEnter a word starting with R: ");
-    scanf("%s", answer);
-
-    upper(answer);
-
-    if (answer[0] != 'R')
-    {
-        printf("Wrong starting letter!\n");
-        printf("GAME OVER!\n");
-        return 0;
-    }
-
-    if (!search(root, answer))
-    {
-        printf("Word not found in dictionary!\n");
-        printf("GAME OVER!\n");
-        return 0;
-    }
-
-    addWord(answer);
-    score += 10;
-
-    /* Display final chain */
-
-    displayChain();
-
-    printf("\n====================================\n");
-    printf("             YOU WIN!\n");
-    printf("====================================\n");
-
-    printf("Player: %s\n", player);
-    printf("Final Score: %d\n", score);
 
     return 0;
 }
